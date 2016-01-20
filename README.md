@@ -5,4 +5,6 @@ A gigantic line follower - has 5 line sensors, a few buttons and will have a key
 
 Uses at the moment an Arduino Uno but maybe upgraded to a Mega to account for so many GPIO pin usages.
 
+Testing the whole local and remote git thing - my first time, surprisingly!
+
 
