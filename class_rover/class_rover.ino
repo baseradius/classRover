@@ -7,10 +7,12 @@
 */
 
 //Line sensor input pins
-#define ls1 A1  //Line Sensor 1 (extreme left)
+#define ls0 A0  //Line Sensor 0 (extreme left)
+#define ls1 A1  //Line Sensor 1 
 #define ls2 A2  //Line Sensor 2
 #define ls3 A3  //Line Sensor 3
-#define ls4 A4  //Line Sensor 4 (extreme right)
+#define ls4 A4  //Line Sensor 4
+#define ls5 A5  //Line Sensor 5 (extreme right)
 
 //Motor Input Pins
 #define lm1 2   //Left Motor input 1 (relay 1 or motor driver input 1)
@@ -37,7 +39,7 @@ void rightMotor(int start, char direction='r');
 
 //Miscellenious functions
 void ringBell(int times=1);
-int whichClass(char msb); //Decodes class/room number from 4 line sensor's binary data
+int whichClass(char msb); //Decodes class/room number from 5 line sensor's binary data
 
 //Core functions
 int line_follower();
@@ -66,38 +68,7 @@ int allOn = 0;
 
 void loop()
 {
-  while (state == 0)
-  {
-    state = line_follower();
-    
-    #ifndef production
-      Serial.println("line following");
-    #endif
-  }  
-  
-  #ifndef production
-    Serial.println("stopped line following");
-  #endif 
-
-  while(allOn == 0)
-  {
-    allOn = digitalRead(ls1) && digitalRead(ls2) && digitalRead(ls3) && digitalRead(ls4);
-
-    #ifndef production
-      Serial.println(allOn);
-    #endif
-    
-    goForward();
-  }
-
-  #ifndef production
-    Serial.println("stopped");
-  #endif
-
-  stopMotors();
-
-  
-  
+  whichClass();  
 }
 
 int line_follower()
@@ -130,77 +101,33 @@ int line_follower()
 }
 
 /*
- *4 sensors. left most sensor is msb.  
- *We will use 1 extra bit by utilizing all 4 sensors to be all low after initial start to get a 1 or a 0.. 
- *00001 = class 1
- *00010 = class 2 etc..  
+ *6 sensors. left most sensor is msb
+ *000001 = class 1
+ *000010 = class 2 etc..  
  *But, to save black marks... I will invert all sensor readings. So.. a sensor that has black will give 1.. 
+ *This gives us 63 addressable locations.
 */
-int whichClass(char msb)
+int whichClass()
 {
-  String classCode="";
-  int classRoom = 0;
+  int cc = 0; //classCode
 
-  classCode+= msb;
-  classCode+= !digitalRead(ls1);
-  classCode+= !digitalRead(ls2);
-  classCode+= !digitalRead(ls3);
-  classCode+= !digitalRead(ls4);
-
-  #ifndef production
-    Serial.println(classCode);
-  #endif
-
-  if(classCode == "00001")
-  {
-    classRoom = 1;
-  }
-  if(classCode == "00010")
-  {
-    classRoom = 2;
-  }
-  if(classCode == "00011")
-  {
-    classRoom = 3;
-  }
-  if(classCode == "00100")
-  {
-    classRoom = 4;
-  }
-  if(classCode == "00101")
-  {
-    classRoom = 5;
-  }
-  if(classCode == "00110")
-  {
-    classRoom = 6;
-  }
-  if(classCode == "00111")
-  {
-    classRoom = 7;
-  }
-  if(classCode == "01000")
-  {
-    classRoom = 8;
-  }
-  if(classCode == "01001")
-  {
-    classRoom = 9;
-  }
-  if(classCode == "01010")
-  {
-    classRoom = 10;
-  }
-  if(classCode == "01011")
-  {
-    classRoom = 11;
-  }
-
-  #ifndef production
-    Serial.println(classRoom);
-  #endif
+  cc = cc | !digitalRead(ls0);
+  cc = cc << 1;
+  cc = cc | !digitalRead(ls1);
+  cc = cc << 1;
+  cc = cc | !digitalRead(ls2);
+  cc = cc << 1;
+  cc = cc | !digitalRead(ls3);
+  cc = cc << 1;
+  cc = cc | !digitalRead(ls4);
+  cc = cc << 1;
+  cc = cc | !digitalRead(ls5);
   
-  return classRoom; 
+  #ifndef production
+    Serial.println(cc);
+  #endif
+
+  return cc; 
 }
 
 void goForward()
@@ -247,50 +174,74 @@ void ringBell(int times)
 
 void testBell()
 {
-  Serial.println("Testing bell 2 times");
+  #ifndef production
+    Serial.println("Testing bell 2 times");
+  #endif
   
   ringBell(2);
-  
-  Serial.println("Finished ringing bell");  
+
+  #ifndef production
+    Serial.println("Finished ringing bell");  
+  #endif
 }
 
 void testMotors()
 {
-  Serial.println("Testing both motors");
+  #ifndef production
+    Serial.println("Testing both motors");
+  #endif
   
   testLeftMotor();
   testRightMotor();
 
-  Serial.println("Finished testing motors");
+  #ifndef production
+    Serial.println("Finished testing motors");
+  #endif
 }
 
 void testLeftMotor()
 {
-  Serial.println("Testing Left Motor forward");
+  #ifndef production
+    Serial.println("Testing Left Motor forward");
+  #endif
+  
   leftMotor(1,'f');
   delay(500);
 
-  Serial.println("Testing left Motor reverse");
+  #ifndef production
+    Serial.println("Testing left Motor reverse");
+  #endif
+  
   leftMotor(1,'r');
   delay(500);
 
-  Serial.println("Stopping Left Motor");
+  #ifndef production
+    Serial.println("Stopping Left Motor");
+  #endif
+  
   leftMotor(0);
 }
 
 void testRightMotor()
 {
-  Serial.println("Testing Right Motor forward");
+  #ifndef production
+    Serial.println("Testing Right Motor forward");
+  #endif
   
   rightMotor(1,'f');
   delay(500);
 
-  Serial.println("Testing Right Motor reverse");
-
+  #ifndef production
+    Serial.println("Testing Right Motor reverse");
+  #endif
+  
   rightMotor(1,'r');
   delay(500);
 
-  Serial.println("Stopping Right Motor");
+  #ifndef production
+    Serial.println("Stopping Right Motor");
+  #endif
+  
   rightMotor(0);
 }
 
